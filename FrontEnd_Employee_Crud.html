@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Management Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --shadow-light: 0 8px 32px rgba(31, 38, 135, 0.07);
+            --shadow-heavy: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh; margin: 0; position: relative; transition: background 0.3s;
+        }
+        body.dashboard-bg {
+            background: #f8f9fa !important;
+        }
+        .container-center {
+            max-width: 420px; margin: 80px auto; padding: 40px;
+            background: rgba(255,255,255,0.12); backdrop-filter: blur(20px);
+            border-radius: 20px; box-shadow: var(--shadow-light); position: relative; z-index: 10;
+            animation: slideInUp 0.8s ease-out;
+        }
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .brand-title {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; font-weight: 700; text-align: center;
+            font-size: 1.8rem; margin-bottom: 2rem;
+        }
+        .form-label { color: #333; font-weight: 500; }
+        .form-control { background: #fff; border-radius: 12px; padding: 12px 16px; }
+        .form-control:focus { border-color: #667eea; box-shadow: 0 0 0 0.2rem #764ba220; }
+        .btn-primary { background: var(--primary-gradient); border: none; border-radius: 12px; font-weight: 600;}
+        .btn-primary:hover { background: #667eea;}
+        .hidden { display: none !important; }
+        #dashboardSection { animation: fadeInScale 0.8s ease-out; }
+        @keyframes fadeInScale { from {opacity:0;transform:scale(0.95);} to {opacity:1;transform:scale(1);} }
+        .navbar { background: #fff !important; border-radius: 20px; margin-bottom: 30px; box-shadow: var(--shadow-light);}
+        .navbar-brand {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            display: inline-block;
+        }
+        .dashboard-header { background: #fff; border-radius: 20px; box-shadow: var(--shadow-light); padding: 20px; margin-bottom: 30px;}
+        .dashboard-header h3 { color: #333; margin: 0;}
+        .add-employee-btn { background: var(--success-gradient); color: #fff; border: none; border-radius: 15px; font-weight: 600;}
+        .add-employee-btn:hover { background: #00f2fe; color: #333;}
+        .card {
+            background: #fff !important; color: #222;
+            border-radius: 16px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); border: none;
+            min-height: 210px; display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px; border: 2px solid #eaeaea;}
+        .card-title, .card-text, .badge, .text-success { color: #222 !important; }
+        .badge {
+            background: #f0f0f0 !important; color: #222 !important;
+            border-radius: 12px; padding: 6px 14px; font-weight: 500;
+        }
+        .btn-outline-warning, .btn-outline-danger { border-radius: 8px;}
+        .btn-outline-warning { color: #856404; border-color: #ffe380; background: #fff8e0;}
+        .btn-outline-warning:hover { background: #ffe380; color: #333;}
+        .btn-outline-danger { color: #b22234; border-color: #f5c6cb; background: #fff5f5;}
+        .btn-outline-danger:hover { background: #f5c6cb; color: #82101b;}
+        .modal-content { background: #fff; border-radius: 20px; }
+        .modal-title, .form-label { color: #222;}
+        .alert { background: #fff8e0; color: #856404; border-radius: 12px; }
+        .alert-danger { background: #fff5f5; color: #b22234;}
+        .alert-success { background: #f1fff5; color: #218838;}
+        .link-style { color: #222; text-decoration: underline; font-weight: 500;}
+        .link-style:hover { color: #667eea;}
+        @media (max-width: 768px) { .container-center {margin:30px auto;padding:18px;} .dashboard-header {padding:14px;} }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <!-- Login Section -->
+        <div id="loginSection" class="container-center">
+            <h2 class="brand-title">Employee Portal</h2>
+            <form id="loginForm" autocomplete="on" aria-label="Login form">
+                <div class="mb-3">
+                    <label for="loginEmail" class="form-label">Email address</label>
+                    <input type="email" class="form-control" id="loginEmail" required autofocus aria-required="true">
+                </div>
+                <div class="mb-3">
+                    <label for="loginPassword" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                    <span class="btn-text">Login</span>
+                    <span class="loading-spinner hidden"></span>
+                </button>
+            </form>
+            <div id="loginError" class="alert alert-danger mt-3 hidden" role="alert"></div>
+            <p class="text-center mt-3">
+                <span style="color: #666;">No account? </span>
+                <a href="#" class="link-style" onclick="showSection('register')" aria-label="Go to registration">Register</a>
+            </p>
+        </div>
+        <!-- Register Section -->
+        <div id="registerSection" class="container-center hidden">
+            <h2 class="brand-title">Create Account</h2>
+            <form id="registerForm" aria-label="Registration form">
+                <div class="mb-3">
+                    <label for="registerEmail" class="form-label">Email address</label>
+                    <input type="email" class="form-control" id="registerEmail" required>
+                </div>
+                <div class="mb-3">
+                    <label for="registerPassword" class="form-label">Password (min 6 chars)</label>
+                    <input type="password" class="form-control" id="registerPassword" minlength="6" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                    <span class="btn-text">Register</span>
+                    <span class="loading-spinner hidden"></span>
+                </button>
+            </form>
+            <div id="registerError" class="alert alert-danger mt-3 hidden" role="alert"></div>
+            <div id="registerSuccess" class="alert alert-success mt-3 hidden" role="alert"></div>
+            <p class="text-center mt-3">
+                <span style="color: #666;">Have an account? </span>
+                <a href="#" class="link-style" onclick="showSection('login')" aria-label="Go to login">Login</a>
+            </p>
+        </div>
+        <!-- Employee Dashboard Section -->
+        <div id="dashboardSection" class="hidden">
+            <nav class="navbar navbar-expand-lg">
+                <div class="container-fluid">
+                    <span class="navbar-brand fs-4">Employee Management</span>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle nav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <div class="ms-auto">
+                            <button class="btn btn-outline-danger" onclick="logout()" aria-label="Logout">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            <div class="dashboard-header d-flex justify-content-between align-items-center flex-wrap">
+                <h3><i class="bi bi-people-fill me-2"></i>My Employees</h3>
+                <button class="add-employee-btn" data-bs-toggle="modal" data-bs-target="#employeeModal" onclick="prepareCreate()" aria-label="Add New Employee">
+                    <i class="bi bi-person-plus me-2"></i>Add Employee
+                </button>
+            </div>
+            <div id="dashboardError" class="alert alert-danger mb-3 hidden" role="alert"></div>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="employeeCardContainer"></div>
+        </div>
+        <!-- Employee Modal -->
+        <div class="modal fade" id="employeeModal" tabindex="-1" aria-labelledby="employeeModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="employeeModalLabel">Add Employee</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="employeeForm">
+                            <input type="hidden" id="employeeId">
+                            <div class="mb-3">
+                                <label for="employeeName" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="employeeName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="employeeAge" class="form-label">Age</label>
+                                <input type="number" class="form-control" id="employeeAge" min="18" max="100" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="employeeDept" class="form-label">Department</label>
+                                <input type="text" class="form-control" id="employeeDept" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="employeeSalary" class="form-label">Salary</label>
+                                <input type="number" class="form-control" id="employeeSalary" min="0" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="employeeDescription" class="form-label">Description</label>
+                                <textarea class="form-control" id="employeeDescription" rows="2"></textarea>
+                            </div>
+                        </form>
+                        <div id="employeeFormError" class="alert alert-danger mt-3 hidden" role="alert"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="saveEmployeeBtn" onclick="saveEmployee()">
+                            <span class="btn-text">Save</span>
+                            <span class="loading-spinner hidden"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // IMPORTANT: Update this to your production backend URL
+    const API_BASE = 'https://railway-deploy-employee-crud-project.onrender.com/api';
+
+function setDashboardBackground(active) {
+    if (active) {
+        document.body.classList.add('dashboard-bg');
+    } else {
+        document.body.classList.remove('dashboard-bg');
+    }
+}
+
+function showSection(section) {
+    document.getElementById('loginSection').classList.add('hidden');
+    document.getElementById('registerSection').classList.add('hidden');
+    document.getElementById('dashboardSection').classList.add('hidden');
+    setTimeout(() => {
+        document.getElementById(`${section}Section`).classList.remove('hidden');
+        setDashboardBackground(section === "dashboard");
+    }, 100);
+}
+
+function checkAuth() {
+    const token = localStorage.getItem('token');
+    if (token) {
+        showSection('dashboard');
+        loadEmployees();
+    } else {
+        showSection('login');
+    }
+}
+
+function logout() {
+    localStorage.removeItem('token');
+    document.getElementById('loginForm').reset();
+    document.getElementById('registerForm').reset();
+    showSection('login');
+    document.getElementById('employeeCardContainer').innerHTML = '';
+}
+
+function showLoading(button) {
+    const btnText = button.querySelector('.btn-text');
+    const spinner = button.querySelector('.loading-spinner');
+    btnText.style.opacity = '0';
+    spinner.classList.remove('hidden');
+    button.disabled = true;
+}
+
+function hideLoading(button) {
+    const btnText = button.querySelector('.btn-text');
+    const spinner = button.querySelector('.loading-spinner');
+    btnText.style.opacity = '1';
+    spinner.classList.add('hidden');
+    button.disabled = false;
+}
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const button = e.target.querySelector('button[type="submit"]');
+    showLoading(button);
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const errorMessage = document.getElementById('loginError');
+    try {
+        const response = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        if (!response.ok) {
+            const msg = await response.text();
+            throw new Error(msg || 'Login failed');
+        }
+        const data = await response.json();
+        localStorage.setItem('token', data.token);
+        showSection('dashboard');
+        loadEmployees();
+        errorMessage.classList.add('hidden');
+    } catch (err) {
+        errorMessage.textContent = err.message;
+        errorMessage.classList.remove('hidden');
+    } finally {
+        hideLoading(button);
+    }
+});
+
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const button = e.target.querySelector('button[type="submit"]');
+    showLoading(button);
+    const email = document.getElementById('registerEmail').value;
+    const password = document.getElementById('registerPassword').value;
+    const errorMessage = document.getElementById('registerError');
+    const successMessage = document.getElementById('registerSuccess');
+    if (password.length < 6) {
+        errorMessage.textContent = 'Password must be at least 6 characters';
+        errorMessage.classList.remove('hidden');
+        successMessage.classList.add('hidden');
+        hideLoading(button);
+        return;
+    }
+    try {
+        const response = await fetch(`${API_BASE}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        if (!response.ok) {
+            const msg = await response.text();
+            throw new Error(msg || 'Registration failed');
+        }
+        successMessage.textContent = 'Successfully Registered! Redirecting...';
+        successMessage.classList.remove('hidden');
+        errorMessage.classList.add('hidden');
+        setTimeout(() => {
+            showSection('login');
+            document.getElementById('registerForm').reset();
+        }, 2000);
+    } catch (err) {
+        errorMessage.textContent = err.message;
+        errorMessage.classList.remove('hidden');
+        successMessage.classList.add('hidden');
+    } finally {
+        hideLoading(button);
+    }
+});
+
+async function loadEmployees() {
+    const token = localStorage.getItem('token');
+    const errorMessage = document.getElementById('dashboardError');
+    try {
+        const response = await fetch(`${API_BASE}/employees`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) {
+            const msg = await response.text();
+            throw new Error(msg || 'Failed to load employees');
+        }
+        const employees = await response.json();
+        const container = document.getElementById('employeeCardContainer');
+        container.innerHTML = '';
+        employees.forEach((emp, index) => {
+            const card = renderEmployeeCard(emp);
+            card.style.animationDelay = `${index * 0.1}s`;
+            container.appendChild(card);
+        });
+        errorMessage.classList.add('hidden');
+    } catch (err) {
+        errorMessage.textContent = err.message;
+        errorMessage.classList.remove('hidden');
+        if (err.message.includes('401')) logout();
+    }
+}
+
+function renderEmployeeCard(emp) {
+    const card = document.createElement('div');
+    card.className = 'col';
+    card.innerHTML = `
+        <div class="card h-100 p-3" data-id="${emp.id}">
+            <div class="d-flex align-items-center mb-3">
+                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name || 'Employee')}&background=667eea&color=fff" alt="avatar" class="avatar">
+                <div>
+                    <h5 class="card-title mb-1">${emp.name || ''}</h5>
+                    <div>
+                        <span class="badge me-2">${emp.dept || 'N/A'}</span>
+                        <span class="badge">${emp.age || 'N/A'} yr</span>
+                    </div>
+                </div>
+            </div>
+            <p class="card-text mb-2">${emp.description || ''}</p>
+            <div class="d-flex justify-content-between">
+                <span class="text-success fw-bold">₹${emp.salary || 0}</span>
+                <div>
+                    <button class="btn btn-outline-warning btn-sm me-1 edit-employee" aria-label="Edit Employee">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm delete-employee" aria-label="Delete Employee">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    return card;
+}
+
+document.getElementById('employeeCardContainer').addEventListener('click', function(e){
+    const cardDiv = e.target.closest(".card");
+    if (!cardDiv) return;
+    const empId = cardDiv.getAttribute("data-id");
+    if (e.target.closest('.edit-employee')) {
+        prepareEdit(empId);
+    } else if (e.target.closest('.delete-employee')) {
+        deleteEmployee(empId);
+    }
+});
+
+function prepareCreate() {
+    document.getElementById('employeeModalLabel').innerText = "Add Employee";
+    document.getElementById('employeeForm').reset();
+    document.getElementById('employeeId').value = '';
+    document.getElementById('employeeFormError').classList.add('hidden');
+}
+
+async function prepareEdit(id) {
+    const token = localStorage.getItem('token');
+    try {
+        const response = await fetch(`${API_BASE}/employees/${id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error("Failed to fetch employee for editing");
+        const emp = await response.json();
+        document.getElementById('employeeModalLabel').innerText = "Edit Employee";
+        document.getElementById('employeeId').value = emp.id;
+        document.getElementById('employeeName').value = emp.name || "";
+        document.getElementById('employeeAge').value = emp.age || "";
+        document.getElementById('employeeDept').value = emp.dept || "";
+        document.getElementById('employeeSalary').value = emp.salary || "";
+        document.getElementById('employeeDescription').value = emp.description || "";
+        document.getElementById('employeeFormError').classList.add('hidden');
+        var modal = new bootstrap.Modal(document.getElementById('employeeModal'));
+        modal.show();
+    } catch (err) {
+        alert(err.message);
+    }
+}
+
+async function saveEmployee() {
+    const token = localStorage.getItem('token');
+    const id = document.getElementById('employeeId').value;
+    const name = document.getElementById('employeeName').value;
+    const age = document.getElementById('employeeAge').value;
+    const dept = document.getElementById('employeeDept').value;
+    const salary = document.getElementById('employeeSalary').value;
+    const description = document.getElementById('employeeDescription').value;
+    const errorDiv = document.getElementById('employeeFormError');
+    const saveBtn = document.getElementById('saveEmployeeBtn');
+    showLoading(saveBtn);
+    errorDiv.classList.add('hidden');
+    if (!name || !age || !dept || !salary) {
+        errorDiv.textContent = "All fields except description are required.";
+        errorDiv.classList.remove('hidden');
+        hideLoading(saveBtn);
+        return;
+    }
+    try {
+        const endpoint = id ? `${API_BASE}/employees/${id}` : `${API_BASE}/employees`;
+        const method = id ? "PUT" : "POST";
+        const resp = await fetch(endpoint, {
+            method: method,
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name, age, dept, salary, description })
+        });
+        if (!resp.ok) {
+            const msg = await resp.text();
+            throw new Error(msg || "Save failed");
+        }
+        bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide();
+        loadEmployees();
+    } catch (err) {
+        errorDiv.textContent = err.message;
+        errorDiv.classList.remove('hidden');
+    } finally {
+        hideLoading(saveBtn);
+    }
+}
+
+async function deleteEmployee(id) {
+    if (!confirm("Are you sure to delete this employee?")) return;
+    const token = localStorage.getItem('token');
+    try {
+        const resp = await fetch(`${API_BASE}/employees/${id}`, {
+            method: "DELETE",
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!resp.ok) throw new Error("Delete failed");
+        loadEmployees();
+    } catch (err) {
+        alert(err.message);
+    }
+}
+
+window.onload = checkAuth;
+</script>  
+</body>
+</html>
